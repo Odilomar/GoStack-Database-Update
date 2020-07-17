@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { getCustomRepository } from 'typeorm';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 // import DeleteTransactionService from '../services/DeleteTransactionService';
@@ -8,8 +9,8 @@ import CreateTransactionService from '../services/CreateTransactionService';
 const transactionsRouter = Router();
 
 transactionsRouter.get('/', async (request, response) => {
-  const transactionsRepository = new TransactionsRepository();
-  const allTransactions = transactionsRepository.find();
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+  const allTransactions = await transactionsRepository.find();
 
   return response.json(allTransactions);
 });
