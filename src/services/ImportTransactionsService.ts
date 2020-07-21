@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
-import fs from 'fs';
-import csv from 'csv-parse';
+import { promises as fs } from 'fs';
 import path from 'path';
 import neatCsv from 'neat-csv';
 
@@ -8,7 +7,6 @@ import uploadConfig from '../config/upload';
 
 import Transaction from '../models/Transaction';
 import CreateTransactionService from './CreateTransactionService';
-import parse from 'csv-parse';
 
 interface TransactionCSV {
   title: string;
@@ -19,36 +17,30 @@ interface TransactionCSV {
 
 class ImportTransactionsService {
   public async execute(filename: string): Promise<Transaction[]> {
-    // const createTransactionService = new CreateTransactionService();
+    const createTransactionService = new CreateTransactionService();
     const transactions: Transaction[] = [];
-    // const importedCSVFile: TransactionCSV[] = [];
+
     const filePath = path.join(uploadConfig.directory, filename);
+    const fileBuffer = await fs.readFile(filePath);
+    const parsedData = await neatCsv<TransactionCSV>(
+      fileBuffer.toString().replace(/[ ]/g, ''),
+    );
 
-    fs.readFile(filePath, async (error, data) => {
-      await neatCsv(data).then((parsedData) => console.log(parsedData));
-    })
+    const importedCSVFile = parsedData;
+    await importedCSVFile.map(async transactionParsedData => {
+      const { title, value, type, category } = transactionParsedData;
 
-    // await fs.createReadStream(filePath)
-    //   .pipe(csv({ columns: true }))
-    //   .on('data', (row: TransactionCSV) => importedCSVFile.push(row))
-    //   .on('end', () => {
-    //     importedCSVFile.map(async csvRow => {
-    //       const { title, category, type, value } = csvRow;
+      const transaction = await createTransactionService.execute({
+        title,
+        value,
+        type,
+        category,
+      });
 
-    //       // console.log(title);
+      transactions.push(transaction);
+    });
 
-    //       const transaction = await createTransactionService.execute({
-    //         title,
-    //         category,
-    //         type,
-    //         value,
-    //       });
-
-    //       transactions.push(transaction);
-
-    //       console.log(transaction);
-    //     });
-    //   });
+    console.log(transactions);
 
     return transactions;
   }

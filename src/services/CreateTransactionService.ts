@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { getRepository, getCustomRepository } from 'typeorm';
 
 import AppError from '../errors/AppError';
