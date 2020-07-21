@@ -27,18 +27,20 @@ class ImportTransactionsService {
     );
 
     const importedCSVFile = parsedData;
-    await importedCSVFile.map(async transactionParsedData => {
-      const { title, value, type, category } = transactionParsedData;
+    await Promise.all(
+      importedCSVFile.map(async transactionParsedData => {
+        const { title, value, type, category } = transactionParsedData;
 
-      const transaction = await createTransactionService.execute({
-        title,
-        value,
-        type,
-        category,
-      });
+        const transaction = await createTransactionService.execute({
+          title,
+          value,
+          type,
+          category,
+        });
 
-      transactions.push(transaction);
-    });
+        transactions.push(transaction);
+      }),
+    );
 
     console.log(transactions);
 

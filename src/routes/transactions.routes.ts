@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { Router } from 'express';
+import { Router, request } from 'express';
 import { getCustomRepository } from 'typeorm';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
@@ -30,7 +30,7 @@ transactionsRouter.get('/', async (request, response) => {
   const balance = await transactionsRepository.getBalance();
 
   return response.json({
-    transactions: [transactions],
+    transactions,
     balance,
   });
 });
@@ -55,6 +55,21 @@ transactionsRouter.delete('/:id', async (request, response) => {
   const deleteTransactionService = new DeleteTransactionService();
 
   await deleteTransactionService.execute(id);
+
+  return response.status(204).send();
+});
+
+transactionsRouter.delete('/', async (request, response) => {
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+  const deleteTransactionService = new DeleteTransactionService();
+
+  const transactions = await transactionsRepository.find();
+
+  await Promise.all(
+    transactions.map(async transaction => {
+      await deleteTransactionService.execute(transaction.id);
+    }),
+  );
 
   return response.status(204).send();
 });
