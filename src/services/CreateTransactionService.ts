@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { getRepository, getCustomRepository } from 'typeorm';
+import { getRepository, getCustomRepository, Like } from 'typeorm';
 
 import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
@@ -24,7 +24,7 @@ class CreateTransactionService {
 
     let checkCategoryExists = await categoryRepository.findOne({
       where: {
-        title: category,
+        title: Like(`%${category}%`),
       },
     });
 
@@ -33,9 +33,7 @@ class CreateTransactionService {
         title: category,
       });
 
-      await categoryRepository.save(newCategory);
-
-      checkCategoryExists = newCategory;
+      checkCategoryExists = await categoryRepository.save(newCategory);
     }
 
     const transactionsRepository = getCustomRepository(TransactionsRepository);
